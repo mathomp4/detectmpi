@@ -13,12 +13,12 @@ if (MPI_STACK)
   endif()
 else ()
   message(STATUS "MPI_STACK not specified. Attempting to autodetect MPI stack...")
-  cmake_print_variables(MPI_Fortran_LIBRARY_VERSION_STRING)
+  message(DEBUG "MPI_Fortran_LIBRARY_VERSION_STRING: ${MPI_Fortran_LIBRARY_VERSION_STRING}")
 
   string(REPLACE " " ";" MPI_Fortran_LIBRARY_VERSION_LIST ${MPI_Fortran_LIBRARY_VERSION_STRING})
-  cmake_print_variables(MPI_Fortran_LIBRARY_VERSION_LIST)
+  message(DEBUG "MPI_Fortran_LIBRARY_VERSION_LIST: ${MPI_Fortran_LIBRARY_VERSION_LIST}")
   list(GET MPI_Fortran_LIBRARY_VERSION_LIST 0 MPI_Fortran_LIBRARY_VERSION_FIRSTWORD)
-  cmake_print_variables(MPI_Fortran_LIBRARY_VERSION_FIRSTWORD)
+  message(DEBUG "MPI_Fortran_LIBRARY_VERSION_FIRSTWORD: ${MPI_Fortran_LIBRARY_VERSION_FIRSTWORD}")
 
   if(MPI_Fortran_LIBRARY_VERSION_STRING MATCHES "Intel")
     set(MPI_STACK intelmpi)
@@ -28,7 +28,6 @@ else ()
     # MVAPICH output for MPI_Fortran_LIBRARY_VERSION_STRING is complex and multi-line. 
     # So we need to extract the first line from that multi-line string.
     string(REGEX REPLACE "\n.*" "" MPI_Fortran_LIBRARY_VERSION_STRING_FIRST_LINE ${MPI_Fortran_LIBRARY_VERSION_STRING})
-    cmake_print_variables(MPI_Fortran_LIBRARY_VERSION_STRING_FIRST_LINE)
     # Now we need to grab the last word from the first line of the string
     string(REGEX MATCH "[^ ]+$" MPI_STACK_VERSION ${MPI_Fortran_LIBRARY_VERSION_STRING_FIRST_LINE})
     # Now we need to remove any colons, spaces, tabs, etc., but keep dots and letters.
@@ -41,7 +40,6 @@ else ()
     # MPICH output for MPI_Fortran_LIBRARY_VERSION_STRING is complex and multi-line. 
     # So we need to extract the first line from that multi-line string.
     string(REGEX REPLACE "\n.*" "" MPI_Fortran_LIBRARY_VERSION_STRING_FIRST_LINE ${MPI_Fortran_LIBRARY_VERSION_STRING})
-    cmake_print_variables(MPI_Fortran_LIBRARY_VERSION_STRING_FIRST_LINE)
     # Now we need to grab the last word from the first line of the string
     string(REGEX MATCH "[^ ]+$" MPI_STACK_VERSION ${MPI_Fortran_LIBRARY_VERSION_STRING_FIRST_LINE})
     # Now we need to remove any colons, spaces, tabs, etc., but keep dots and letters.
@@ -57,6 +55,6 @@ else ()
   set(MPI_STACK_TYPE "Autodetected")
 endif()
 
-message(STATUS "Using ${MPI_STACK_TYPE} MPI_STACK: ${MPI_STACK}")
 set(MPI_STACK "${MPI_STACK}" CACHE STRING "MPI_STACK Value")
-cmake_print_variables(MPI_STACK_VERSION)
+set(MPI_STACK_VERSION "${MPI_STACK_VERSION}" CACHE STRING "MPI_STACK_VERSION Value")
+message(STATUS "Using ${MPI_STACK_TYPE} MPI_STACK: ${MPI_STACK}. Version: ${MPI_STACK_VERSION}")
