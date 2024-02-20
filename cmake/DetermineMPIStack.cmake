@@ -9,12 +9,9 @@ if (MPI_STACK)
     message(FATAL_ERROR "MPI_STACK must be one of the following: ${ALLOWED_MPI_STACKS}")
   else()
     set(MPI_STACK_TYPE "User Specified")
+    message(WARNING "MPI_STACK is user specified. Please ensure that the specified MPI stack is compatible with the build. NOTE: MPI_STACK_VERSION is not being set.")
   endif()
 else ()
-  if (MPI_STACK MATCHES "mpiuni")
-    message(FATAL_ERROR "You cannot build with BUILD_MPI=ON and MPI_STACK=mpiuni")
-  endif ()
-
   message(STATUS "MPI_STACK not specified. Attempting to autodetect MPI stack...")
   cmake_print_variables(MPI_Fortran_LIBRARY_VERSION_STRING)
 
@@ -26,19 +23,29 @@ else ()
   if(MPI_Fortran_LIBRARY_VERSION_STRING MATCHES "Intel")
     set(MPI_STACK intelmpi)
     list(GET MPI_Fortran_LIBRARY_VERSION_LIST 3 MPI_STACK_VERSION)
-  elseif(MPI_Fortran_LIBRARY_VERSION_STRING MATCHES "MVAPICH2")
+  elseif(MPI_Fortran_LIBRARY_VERSION_STRING MATCHES "MVAPICH")
     set(MPI_STACK mvapich)
-    list(GET MPI_Fortran_LIBRARY_VERSION_LIST 3 MPI_STACK_VERSION)
+    # MVAPICH output for MPI_Fortran_LIBRARY_VERSION_STRING is complex and multi-line. 
+    # So we need to extract the first line from that multi-line string.
+    string(REGEX REPLACE "\n.*" "" MPI_Fortran_LIBRARY_VERSION_STRING_FIRST_LINE ${MPI_Fortran_LIBRARY_VERSION_STRING})
+    cmake_print_variables(MPI_Fortran_LIBRARY_VERSION_STRING_FIRST_LINE)
+    # Now we need to grab the last word from the first line of the string
+    string(REGEX MATCH "[^ ]+$" MPI_STACK_VERSION ${MPI_Fortran_LIBRARY_VERSION_STRING_FIRST_LINE})
+    # Now we need to remove any colons, spaces, tabs, etc., but keep dots and letters.
+    string(REGEX REPLACE "[^a-zA-Z0-9.]" "" MPI_STACK_VERSION ${MPI_STACK_VERSION})
   elseif(MPI_Fortran_LIBRARY_VERSION_STRING MATCHES "MPT")
     set(MPI_STACK mpt)
     list(GET MPI_Fortran_LIBRARY_VERSION_LIST 2 MPI_STACK_VERSION)
   elseif(MPI_Fortran_LIBRARY_VERSION_STRING MATCHES "MPICH")
     set(MPI_STACK mpich)
-    list(GET MPI_Fortran_LIBRARY_VERSION_LIST 1 DETECTED_MPI_STACK_VERSION_STRING_WITH_EXTRA_SPACES)
-    # MPICH has a weird output. Need to make it a list in an ugly way...
-    string(REGEX REPLACE "[ \t\r\n]" ";" DETECTED_MPI_STACK_VERSION_STRING_LIST ${DETECTED_MPI_STACK_VERSION_STRING_WITH_EXTRA_SPACES})
-    # Then grab the second field
-    list(GET DETECTED_MPI_STACK_VERSION_STRING_LIST 1 MPI_STACK_VERSION)
+    # MPICH output for MPI_Fortran_LIBRARY_VERSION_STRING is complex and multi-line. 
+    # So we need to extract the first line from that multi-line string.
+    string(REGEX REPLACE "\n.*" "" MPI_Fortran_LIBRARY_VERSION_STRING_FIRST_LINE ${MPI_Fortran_LIBRARY_VERSION_STRING})
+    cmake_print_variables(MPI_Fortran_LIBRARY_VERSION_STRING_FIRST_LINE)
+    # Now we need to grab the last word from the first line of the string
+    string(REGEX MATCH "[^ ]+$" MPI_STACK_VERSION ${MPI_Fortran_LIBRARY_VERSION_STRING_FIRST_LINE})
+    # Now we need to remove any colons, spaces, tabs, etc., but keep dots and letters.
+    string(REGEX REPLACE "[^a-zA-Z0-9.]" "" MPI_STACK_VERSION ${MPI_STACK_VERSION})
   elseif(MPI_Fortran_LIBRARY_VERSION_STRING MATCHES "Open MPI")
     set(MPI_STACK openmpi)
     list(GET MPI_Fortran_LIBRARY_VERSION_LIST 2 DETECTED_MPI_STACK_VERSION_STRING_WITH_COMMA)
